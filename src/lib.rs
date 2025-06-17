@@ -36,7 +36,7 @@ pub extern "system" fn Java_io_crates_keyring_Keyring_00024Companion_setAndroidK
         }
     };
 
-    let builder = match credential::AndroidBuilder::new(env, context) {
+    let builder = match credential::AndroidBuilder::new(&env, context) {
         Ok(builder) => builder,
         Err(e) => {
             tracing::error!(%e, "error initialized AndroidBuilder credential builder");
@@ -46,4 +46,15 @@ pub extern "system" fn Java_io_crates_keyring_Keyring_00024Companion_setAndroidK
     };
 
     keyring::set_default_credential_builder(Box::new(builder));
+}
+
+/// Initializes the android-keyring from pure Rust (no Java call needed).
+/// Requires the `ndk-context` feature.
+#[cfg(feature = "ndk-context")]
+pub fn set_android_keyring_credential_builder() -> Result<(), credential::AndroidKeyringError> {
+    keyring::set_default_credential_builder(Box::new(
+        credential::AndroidBuilder::from_ndk_context()?,
+    ));
+
+    Ok(())
 }
